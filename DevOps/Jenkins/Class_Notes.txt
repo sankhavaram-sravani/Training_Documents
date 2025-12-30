@@ -300,4 +300,141 @@ NExt ::
 		
 		
 		
+#######################
+Day 17: 30th Dec. 2025
+#######################			
 		
+	- Create the Jenkins Master & Slave Node Configurations :::
+	
+	- Architecture :::
+	
+		Jenkins_Master (VM)			==> To Create Jenkins CI/CD Pipeline Projects and schedule to the builds in the slave_nodes
+																
+			Jenkins_SlaveNode1 (VM)	==> Perform Application Builds - Java Applications		
+		
+		
+		- Tools :
+		
+			Jenkins_Master (VM) 		==>	git,jkd,jenkins 
+			
+				Jenkins_SlaveNode1 (VM)	==> git,jenkins,maven 
+				
+		- Integration and Dependencies :
+				
+				SSH Connection :
+				
+					Host_Name 
+					User_Name 
+					SSH-Key
+					
+				
+				
+		
+pipeline {
+
+    agent { label 'slave1' }
+
+    stages {
+        stage('SCM_Checkout') {
+            steps {
+                echo 'Perform SCM Checkout'	
+				git 'https://github.com/PL-DevOps-GenAI-A1125/java-webapp-project.git'
+				
+            }
+        }
+        stage('Application_Build') {
+            steps {
+                echo 'Perform Maven Application Build'
+				sh 'mvn clean package'				
+            }
+        }
+        stage('Deploy to QA Server') {
+            steps {
+                echo 'Deploy Artifacts to QA Server'
+            }
+        }
+    }
+}	
+
+
+	Non-Prod 						Prod 
+	
+		- Dev 
+		
+		- Build 	==> *.war
+		
+		- QA 
+		
+		- UAT 			==> 		Prod 
+		
+		
+	
+	Deployment :::		# Process of copying the artifacts from one server to another!
+	
+		
+		Target Server/Hosted Server/Deployment Server 
+		
+		==> Web Application Server # Software Packer ==> tomcat/nginx/httpd 
+		
+	
+		- Jenkins_Master (VM)			# git, jdk, jenkins 
+			- Jenkins_SlaveNode1 (VM) 	# git, jdk, maven 
+			
+		- Tomcat_Server (VM)			# jdk,tomcat 
+	
+	
+	- Setup the Target Server and Deploy the Artifacts!
+	
+
+	Deployment :
+	
+	- Source Server 														Target Server 
+	
+		Slave_Node1																Tomcat_Server
+		
+			target/*.war					=================>						/opt/tomcat/webapps
+			
+																					/opt/tomcat/webapps/*.war
+pipeline {
+
+    agent { label 'slave1' }
+
+    stages {
+        stage('SCM_Checkout') {
+            steps {
+                echo 'Perform SCM Checkout'	
+				git 'https://github.com/PL-DevOps-GenAI-A1125/java-webapp-project.git'
+				
+            }
+        }
+        stage('Application_Build') {
+            steps {
+                echo 'Perform Maven Application Build'
+				sh 'mvn clean package'				
+            }
+        }
+        stage('Deploy to QA Server') {
+            steps {
+                script{
+					sshPublisher(publishers: [sshPublisherDesc(configName: 'QA_Tomcat_Server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: 'target/', sourceFiles: 'target/*.war')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                }
+            }
+        }
+    }
+}	
+		
+	
+
+sshPublisher(publishers: [sshPublisherDesc(configName: 'QA_Tomcat_Server', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: 'target/', sourceFiles: 'target/*.war')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])	
+		
+		
+
+http://43.204.227.54:8080/demo-1.0-SNAPSHOT/
+
+
+Next :::
+
+	Build Triggers :::
+	
+	
+	Email Notifications :::		
